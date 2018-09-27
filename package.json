@@ -1,0 +1,24 @@
+{
+  "name": "nasty-text",
+  "version": "1.0.0",
+  "description": "Texting service for the UW-Madison Gymnastics Club, revamped and serverless now",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/I-Dont-Remember/nasty-text.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/I-Dont-Remember/nasty-text/issues"
+  },
+  "homepage": "https://github.com/I-Dont-Remember/nasty-text#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "serverless-http": "^1.6.0"
+  }
+}
