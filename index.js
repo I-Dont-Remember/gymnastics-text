@@ -9,9 +9,9 @@ const app = express();
 const { smsHandler } = require("./textHandler");
 
 
-app.get('/', function (req, res) {
+app.post('/sms', function (req, res) {
 
-  res.send('Hello World!')
+  res.send('Hello World!!')
 
 });
 

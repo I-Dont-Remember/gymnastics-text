@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "sls deploy",
+    "local": "sls offline start",
     "sls": "sls"
   },
   "repository": {
@@ -29,6 +30,7 @@
     "twilio": "^3.20.0"
   },
   "devDependencies": {
-    "serverless": "^1.32.0"
+    "serverless": "^1.32.0",
+    "serverless-offline": "^3.25.14"
   }
 }
