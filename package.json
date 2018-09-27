@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "sls deploy",
     "local": "sls offline start",
-    "sls": "sls"
+    "sls": "sls",
+    "prettier": "./node_modules/prettier/bin-prettier.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "twilio": "^3.20.0"
   },
   "devDependencies": {
+    "prettier": "1.14.3",
     "serverless": "^1.32.0",
     "serverless-offline": "^3.25.14"
   }
