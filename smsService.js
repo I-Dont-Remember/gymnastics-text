@@ -25,10 +25,21 @@ function formatMessageToTwiml(message) {
     return twiml.toString();
 }
 
+function getNumberFromRequest(req) {
+    return req.body.From;
+}
+
+// pulls out the user message from the services request
+function getSmsFromRequest(req) {
+    return req.body.Body;
+}
+
 function formatResponse(message) {
     return formatMessageToTwiml(message);
 }
 
 module.exports = {
-    formatResponse
+    formatResponse,
+    getSmsFromRequest,
+    getNumberFromRequest
 };
