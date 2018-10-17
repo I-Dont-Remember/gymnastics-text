@@ -1,38 +1,40 @@
 {
-  "name": "nasty-text",
-  "version": "1.0.0",
-  "description": "Texting service for the UW-Madison Gymnastics Club, revamped and serverless now",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "sls deploy",
-    "local": "sls offline start",
-    "sls": "sls",
-    "prettier": "./node_modules/prettier/bin-prettier.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/I-Dont-Remember/nasty-text.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/I-Dont-Remember/nasty-text/issues"
-  },
-  "homepage": "https://github.com/I-Dont-Remember/nasty-text#readme",
-  "dependencies": {
-    "aws-sdk": "^2.323.0",
-    "difflib": "^0.2.4",
-    "express": "^4.16.3",
-    "googleapis": "^27.0.0",
-    "readline": "^1.3.0",
-    "serverless-http": "^1.6.0",
-    "twilio": "^3.20.0"
-  },
-  "devDependencies": {
-    "prettier": "1.14.3",
-    "serverless": "^1.32.0",
-    "serverless-offline": "^3.25.14"
-  }
+    "name": "nasty-text",
+    "version": "1.0.0",
+    "description": "Texting service for the UW-Madison Gymnastics Club, revamped and serverless now",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deploy": "sls deploy",
+        "local": "NODE_ENV=dev sls offline start",
+        "sls": "NODE_ENV=dev sls",
+        "prettier": "./node_modules/prettier/bin-prettier.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/I-Dont-Remember/nasty-text.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/I-Dont-Remember/nasty-text/issues"
+    },
+    "homepage": "https://github.com/I-Dont-Remember/nasty-text#readme",
+    "dependencies": {
+        "aws-sdk": "^2.323.0",
+        "body-parser": "^1.18.3",
+        "difflib": "^0.2.4",
+        "dynamoose": "^1.0.0",
+        "express": "^4.16.3",
+        "googleapis": "^27.0.0",
+        "readline": "^1.3.0",
+        "serverless-http": "^1.6.0",
+        "twilio": "^3.20.0"
+    },
+    "devDependencies": {
+        "prettier": "1.14.3",
+        "serverless": "^1.32.0",
+        "serverless-offline": "^3.25.14"
+    }
 }
