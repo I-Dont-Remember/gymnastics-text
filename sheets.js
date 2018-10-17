@@ -1,3 +1,7 @@
+/* sheets:
+    Functions for interaction with the Google Sheets API.
+*/
+
 const google = require("googleapis");
 const privatekey = require("./googleCredentials.json");
 
@@ -38,6 +42,8 @@ sheets.spreadsheets.values.get(
         }
     }
 );
+
+module.exports = {};
 
 // var fs = require('fs');
 // var readline = require('readline');
