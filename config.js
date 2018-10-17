@@ -15,18 +15,34 @@ if (need_twilio_auth) {
 
 // default settings for dev, to be modified to fit other environments
 let config = {
+    pickUpLocations: ["McDonald's", "Hub Madison", "Porter Boathouse"],
+    onboardingStages: [
+        "createdNewUser",
+        "updatedName",
+        "updatedDriver",
+        "DONE"
+    ],
+    secretaryNumber: "+17153387410",
     twilio: {
         sid: process.env.TWILIO_SID,
         token: process.env.TWILIO_TOKEN,
         number: "1234561234"
     },
-    sheets: {}
+    sheets: {},
+    localstack: {
+        accessKeyId: "Fake",
+        secretAccessKey: "Fake",
+        region: "us-east-1",
+        dynamoUrl: "http://localhost:4569"
+    }
 };
 
 const env = process.env.NODE_ENV;
 
 if (env === "production") {
     // production config changes
+    // remove localstack from config
+    config.removeAttribute(localstack);
 }
 
 module.exports = config;
