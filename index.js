@@ -10,4 +10,7 @@ const { smsHandler } = require("./textHandler");
 
 app.post("/sms", smsHandler);
 
+const { test } = require("./sheets");
+app.get("/test", test);
+
 module.exports.handler = serverless(app);

@@ -2,7 +2,7 @@
     Functions for interaction with the Google Sheets API.
 */
 
-const google = require("googleapis");
+const { google } = require("googleapis");
 const privatekey = require("./googleCredentials.json");
 
 // configure a JWT auth client
@@ -22,28 +22,30 @@ jwtClient.authorize(function(err, tokens) {
     }
 });
 
-let spreadsheetId = "12CgCC6HV9ZJGO8EePqo9PNmy-7UY6GTL1atG8gSItnE";
-let sheetName = "Nasty Test!A1:B2";
-let sheets = google.sheets("v4");
-sheets.spreadsheets.values.get(
-    {
-        auth: jwtClient,
-        spreadsheetId,
-        range: sheetName
-    },
-    function(err, response) {
-        if (err) {
-            console.log("Sheets API returned an error: ", err);
-        } else {
-            console.log("List from Sheets:");
-            for (let row of response.values) {
-                console.log(`Col 1: ${row[0]} and Col 2: ${row[1]}`);
+function test() {
+    let spreadsheetId = "12CgCC6HV9ZJGO8EePqo9PNmy-7UY6GTL1atG8gSItnE";
+    let sheetRange = "A1:A2";
+    let sheets = google.sheets("v4");
+    sheets.spreadsheets.values.get(
+        {
+            auth: jwtClient,
+            spreadsheetId,
+            range: sheetRange
+        },
+        function(err, response) {
+            if (err) {
+                console.log("Sheets API returned an error: ", err);
+            } else {
+                console.log("List from Sheets:");
+                console.log("response: ", response.data.values);
             }
         }
-    }
-);
+    );
+}
 
-module.exports = {};
+module.exports = {
+    test
+};
 
 // var fs = require('fs');
 // var readline = require('readline');
