@@ -4,11 +4,13 @@
     "description": "Texting service for the UW-Madison Gymnastics Club, revamped and serverless now",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "NODE_ENV=test mocha --exit",
         "deploy": "sls deploy",
         "local": "NODE_ENV=dev sls offline start",
         "sls": "NODE_ENV=dev sls",
-        "prettier": "./node_modules/prettier/bin-prettier.js"
+        "prettier": "./node_modules/prettier/bin-prettier.js",
+        "mocha": "NODE_ENV=test mocha",
+        "test-nyan": "NODE_ENV=test mocha --exit --reporter nyan"
     },
     "repository": {
         "type": "git",
@@ -33,7 +35,9 @@
         "twilio": "^3.20.0"
     },
     "devDependencies": {
+        "mocha": "^5.2.0",
         "prettier": "1.14.3",
+        "rewire": "^4.0.1",
         "serverless": "^1.32.0",
         "serverless-offline": "^3.25.14"
     }
