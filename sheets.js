@@ -4,7 +4,8 @@
 
 const { google } = require("googleapis");
 const privatekey = require("./googleCredentials.json");
-const signupSpreadsheetId = "12CgCC6HV9ZJGO8EePqo9PNmy-7UY6GTL1atG8gSItnE";
+//const signupSpreadsheetId = "12CgCC6HV9ZJGO8EePqo9PNmy-7UY6GTL1atG8gSItnE";
+const signupSpreadsheetId = "1enan-_vOuiTNYjU_P2OvnwP3l61rW1oBxuf8R4O2_l0";
 
 // configure a JWT auth client
 const jwtClient = new google.auth.JWT(
@@ -23,9 +24,13 @@ jwtClient.authorize(function(err, tokens) {
     }
 });
 
-function test() {
+module.exports = {};
+
+module.exports.test = (req, res) => {
+    console.log("HUH");
+
     let spreadsheetId = signupSpreadsheetId;
-    let sheetRange = "A1:A2";
+    let sheetRange = "A1:U42";
     let sheets = google.sheets("v4");
     sheets.spreadsheets.values.get(
         {
@@ -39,10 +44,12 @@ function test() {
             } else {
                 console.log("List from Sheets:");
                 console.log("response: ", response.data.values);
+
+                return res.status(200).send({});
             }
         }
     );
-}
+};
 
 /**
  * Print the location and time of practice for today
@@ -628,36 +635,111 @@ function gymnasticsCheckStatus(
     );
 }
 
-function signUp(user, sendText) {
-    editSheet(user, true, false, gymnasticsCheckStatus, function(msg) {
-        sendText(msg);
-    });
-}
-function cancel(user, sendText) {
-    editSheet(user, false, true, gymnasticsCheckStatus, function(msg) {
-        sendText(msg);
-    });
-}
-function checkStatus(user, sendText) {
-    editSheet(user, false, false, gymnasticsCheckStatus, function(msg) {
-        sendText(msg);
-    });
-}
-function infoPeople(sendText) {
-    editSheet(null, false, false, gymnasticsInfoPeople, function(msg) {
-        sendText(msg);
-    });
-}
-function infoLogistics(sendText) {
-    editSheet(null, false, false, gymnasticsInfoLogistics, function(msg) {
-        sendText(msg);
+// TODO
+function checkIfValidTime() {
+    return new Promise(function(resolve, reject) {
+        return resolve(true);
     });
 }
 
-module.exports = {
-    signUp: signUp,
-    cancel: cancel,
-    checkStatus: checkStatus,
-    infoPeople: infoPeople,
-    infoLogistics: infoLogistics
+// TODO
+function checkIfSignedUp(name) {
+    return new Promise(function(resolve, reject) {
+        return resolve(true);
+    });
+}
+
+function addNameToSheet(name, location, driver) {
+    return new Promise(function(resolve, reject) {
+        return resolve();
+    });
+}
+
+//async function signUp(name, location, driver) {
+module.exports.signUp = async (name, location, driver) => {
+    return new Promise(async (resolve, reject) => {
+        // make sure input is valid
+        if (typeof name !== "string" || name.length === 0) {
+            return reject(
+                new Error("Invalid input to signUp(). Value of name was ", name)
+            );
+        }
+
+        console.log("Name is valid: ", name);
+
+        // check if it's too late to sign up today or if it's not a practice day
+        try {
+            const validTime = await checkIfValidTime(); // TODO
+            if (!validTime) {
+                return resolve("Sheet is closed!");
+            }
+        } catch (checkIfValidTimeError) {
+            return reject(checkValidTimeError);
+        }
+
+        console.log("Sheet is open");
+
+        // see if the user is already on the list for that day
+        try {
+            var {
+                isSignedUp,
+                location: oldLoc,
+                driving
+            } = await checkIfSignedUp(name); // TODO
+        } catch (checkIfSignedUpError) {
+            return reject(checkIfSignedUpError);
+        }
+
+        // if user is already on list, tell them that they're already on the list
+        // as well as where they're getting picked up
+        if (isSignedUp) {
+            console.log("Already signed up");
+            const rideOrDrive = driving ? "pick up friends" : "get picked up";
+            return resolve(
+                "You're already signed up to " + rideOrDrive + " from " + oldLoc
+            );
+        }
+
+        // if the user is not already on the list, add them
+        else {
+            console.log("Adding name to sheet");
+            try {
+                await addNameToSheet(name, location, driver);
+            } catch (addNameError) {
+                return reject(addNameError);
+            }
+        }
+
+        console.log("Added name to sheet");
+
+        // return successfully
+        const rideOrDrive = driver ? "pick up friends" : "get picked up";
+        return resolve(
+            "You are signed up to " + rideOrDrive + " from " + location
+        );
+    });
+
+    // editSheet(user, true, false, gymnasticsCheckStatus, function(msg) {
+    //     sendText(msg);
+    // });
 };
+module.exports.cancel = name => {
+    // editSheet(user, false, true, gymnasticsCheckStatus, function(msg) {
+    //     sendText(msg);
+    // });
+};
+// module.exports.checkStatus = (user, sendText) => {
+//     editSheet(user, false, false, gymnasticsCheckStatus, function(msg) {
+//         sendText(msg);
+//     });
+// };
+// module.exports.infoPeople = sendText => {
+//     editSheet(null, false, false, gymnasticsInfoPeople, function(msg) {
+//         sendText(msg);
+//     });
+// };
+// module.exports.infoLogistics = sendText => {
+//     editSheet(null, false, false, gymnasticsInfoLogistics, function(msg) {
+//         sendText(msg);
+//     });
+// };

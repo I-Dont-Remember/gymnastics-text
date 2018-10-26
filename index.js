@@ -12,7 +12,10 @@ const { smsHandler } = require("./textHandler");
 
 app.post("/sms", smsHandler);
 
-const { test } = require("./sheets");
-app.get("/test", test);
+const { test, signUp } = require("./sheets");
+app.get("/test", async (req, res) => {
+    await signUp("Austin Meyer");
+    return res.status(200).send({});
+});
 
 module.exports.handler = serverless(app);
