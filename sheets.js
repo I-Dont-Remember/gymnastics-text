@@ -635,27 +635,88 @@ function gymnasticsCheckStatus(
     );
 }
 
-// TODO
-function checkIfValidTime() {
+// read a range of values from the spreadsheet
+async function readValues(range) {
     return new Promise(function(resolve, reject) {
-        return resolve(true);
+        const sheets = google.sheets("v4");
+        sheets.spreadsheets.values.get(
+            {
+                auth: jwtClient,
+                spreadsheetId: signupSpreadsheetId,
+                range: range
+            },
+            function(err, response) {
+                if (err) {
+                    return reject(err);
+                } else {
+                    return resolve(response.data.values);
+                }
+            }
+        );
+    });
+}
+
+// read a range of values from the spreadsheet
+async function writeValues(range, values) {
+    return new Promise(function(resolve, reject) {
+        // check if arguments are valid
+        if (
+            !Array.isArray(values) ||
+            values.length === 0 ||
+            !Array.isArray(values[0])
+        ) {
+            return reject(new Error("Invalid values: ", values));
+        } else if (typeof range !== "string") {
+            return reject(new Error("Invalid range: ", range));
+        }
+
+        const sheets = google.sheets("v4");
+        const resource = { values };
+        sheets.spreadsheets.values.update(
+            {
+                auth: jwtClient,
+                spreadsheetId: signupSpreadsheetId,
+                range,
+                valueInputOption: "RAW",
+                resource
+            },
+            function(err, response) {
+                if (err) {
+                    return reject(err);
+                } else {
+                    return resolve();
+                }
+            }
+        );
+    });
+}
+
+// if we have permission to write, it is a valid time to sign up
+async function checkIfValidTime() {
+    return new Promise(async function(resolve, reject) {
+        try {
+            await writeValues("A100:A100", [["c"]]);
+            await writeValues("A100:A100", [[""]]);
+            return resolve(true);
+        } catch (writeValue) {
+            return resolve(false);
+        }
     });
 }
 
 // TODO
-function checkIfSignedUp(name) {
-    return new Promise(function(resolve, reject) {
+async function checkIfSignedUp(name) {
+    return new Promise(async function(resolve, reject) {
         return resolve(true);
     });
 }
 
-function addNameToSheet(name, location, driver) {
-    return new Promise(function(resolve, reject) {
+async function addNameToSheet(name, location, driver) {
+    return new Promise(async function(resolve, reject) {
         return resolve();
     });
 }
 
-//async function signUp(name, location, driver) {
 module.exports.signUp = async (name, location, driver) => {
     return new Promise(async (resolve, reject) => {
         // make sure input is valid
@@ -670,6 +731,7 @@ module.exports.signUp = async (name, location, driver) => {
         // check if it's too late to sign up today or if it's not a practice day
         try {
             const validTime = await checkIfValidTime(); // TODO
+            console.log("validTime: ", validTime);
             if (!validTime) {
                 return resolve("Sheet is closed!");
             }
