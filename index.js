@@ -14,7 +14,7 @@ app.post("/sms", smsHandler);
 
 const { test, signUp } = require("./sheets");
 app.get("/test", async (req, res) => {
-    await signUp("Austin Meyer");
+    await signUp("Austin Meyer", "McDonalds", false);
     return res.status(200).send({});
 });
 

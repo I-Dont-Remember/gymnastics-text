@@ -725,12 +725,12 @@ async function checkIfSignedUp(name) {
         // get all the values in the table
         const wantedCols = ["H", "J", "N", "R"];
         const places = ["McDonalds", "Hub", "Porter Boathouse", "Other"];
-        const highestRow = "9";
-        const lowestRow = "31";
+        const topRow = 9;
+        const lowestRow = 31;
 
         // read the values of every location's column (including Other column)
         const readValuesPromises = wantedCols.map(col => {
-            const values = `${col}${highestRow}:${col}${lowestRow}`;
+            const values = `${col}${topRow}:${col}${lowestRow}`;
             return readValues(values);
         });
 
@@ -757,8 +757,7 @@ async function checkIfSignedUp(name) {
                     const location = places[col];
                     // the user is driving if their name is in a row with value 6n
                     const driving = row % 6 === 0;
-                    const cell = `${wantedCols[col]}${row +
-                        parseInt(highestRow, 10)}`;
+                    const cell = `${wantedCols[col]}${row + topRow}`;
                     return resolve({ isSignedUp, location, driving, cell });
                 }
             }
@@ -768,8 +767,79 @@ async function checkIfSignedUp(name) {
     });
 }
 
+// add a user's name to the sheet, error if there's no room
 async function addNameToSheet(name, location, driver) {
     return new Promise(async function(resolve, reject) {
+        console.log("name: ", name);
+        console.log("location:", location);
+        console.log("driver: ", driver);
+        // check for invalid arguments
+        if (!name || !location || typeof driver !== "boolean") {
+            return reject(
+                new Error(
+                    `Invalid usage. Got name: ${name}, location: ${location}, driver: ${driver}`
+                )
+            );
+        }
+
+        // the first and last row that could have names
+        const topRow = 9;
+        const lowestRow = 31;
+
+        // the columns to fill
+        const possibleCols = {
+            McDonalds: "H",
+            Hub: "J",
+            "Porter Boathouse": "N",
+            Other: "R"
+        };
+
+        // the column to check for an opening
+        const column = possibleCols[location];
+        if (!column) {
+            return reject(new Error("Invalid location: ", location));
+        }
+
+        // get all the potential cells in that column
+        try {
+            var cells = (await readValues(
+                `${column}${topRow}:${column}${lowestRow}`
+            ))[0]; // returns as a 2d array but only want 1d
+        } catch (getValuesError) {
+            return reject(getValuesError);
+        }
+
+        // go through each valid cell and see if it's full
+        let openRow;
+        for (let currRow = 0; currRow <= lowestRow - topRow; currRow++) {
+            // divide the row by six, get its remainder
+            const rowMod6 = currRow % 6;
+            // see if this row could house the user's type (rider/driver)
+            const validRow = driver
+                ? rowMod6 === 0
+                : rowMod6 % 6 !== 0 && rowMod6 !== 5;
+            // if the cell is available, mark it as the cell to fill
+            if (validRow && !cells[currRow]) {
+                openRow = currRow + topRow;
+                break;
+            }
+        }
+
+        // if no valid open row was found
+        if (!openRow) {
+            return reject(new Error("Location: ", location, " is full!"));
+        }
+
+        // the cell that the user's name should be entered into
+        const openCell = column + openRow;
+
+        // write the name of the user in the open cell
+        try {
+            await writeValues(`${openCell}:${openCell}`, [[name]]);
+        } catch (writeError) {
+            return reject(writeError);
+        }
+
         return resolve();
     });
 }
@@ -783,7 +853,18 @@ module.exports.signUp = async (name, location, driver) => {
             );
         }
 
-        console.log("Name is valid: ", name);
+        if (typeof location !== "string" || location.length === 0) {
+            return reject(
+                new Error(
+                    "Invalid input to signUp(). Value of location was ",
+                    location
+                )
+            );
+        }
+
+        if (typeof driver !== "boolean") {
+            driver = false;
+        }
 
         // check if it's too late to sign up today or if it's not a practice day
         try {
