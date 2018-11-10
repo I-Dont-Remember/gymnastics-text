@@ -705,20 +705,6 @@ async function checkIfValidTime() {
     });
 }
 
-// returns an object with the slots that could potentially be filled with people
-// function slots() {
-//     const peoplePerCar = 4;
-//     const firstSlotRow = 9;
-//     const carsPerLocation = 4;
-//
-//     const slots = {
-//         McDonalds: {
-//             drivers: driverSlots.map(row => `${McDonaldsCol}:${row}`),
-//             riders: riderSlots.map(row => `${McDonaldsCol}:${row}`)
-//         }
-//     };
-// }
-
 // resolves to true if the name exists on the list
 async function checkIfSignedUp(name) {
     return new Promise(async function(resolve, reject) {
@@ -919,6 +905,18 @@ module.exports.cancel = name => {
         // make sure the name provided is valid
         if (typeof name !== "string" || name.length === 0) {
             return reject(new Error("Invalid name: ", name));
+        }
+
+        // check if it's too late to cancel today or if it's not a practice day
+        try {
+            const validTime = await checkIfValidTime();
+            if (!validTime) {
+                return resolve(
+                    "The sheet's closed ya dingus. To cancel, text Maddie at 262-365-1392"
+                );
+            }
+        } catch (checkIfValidTimeError) {
+            return reject(checkValidTimeError);
         }
 
         // the first and last row that could have names
