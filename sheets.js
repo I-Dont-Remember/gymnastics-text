@@ -862,6 +862,7 @@ module.exports.signUp = async (name, location, driver) => {
             );
         }
 
+        // if it is unknown whether they're driving, assume they aren't
         if (typeof driver !== "boolean") {
             driver = false;
         }
@@ -869,15 +870,12 @@ module.exports.signUp = async (name, location, driver) => {
         // check if it's too late to sign up today or if it's not a practice day
         try {
             const validTime = await checkIfValidTime();
-            console.log("validTime: ", validTime);
             if (!validTime) {
                 return resolve("Sheet is closed!");
             }
         } catch (checkIfValidTimeError) {
             return reject(checkValidTimeError);
         }
-
-        console.log("Sheet is open");
 
         // see if the user is already on the list for that day
         try {
@@ -891,12 +889,9 @@ module.exports.signUp = async (name, location, driver) => {
             return reject(checkIfSignedUpError);
         }
 
-        console.log("cell: ", cell);
-
         // if user is already on list, tell them that they're already on the list
         // as well as where they're getting picked up
         if (isSignedUp) {
-            console.log("Already signed up");
             const rideOrDrive = driving ? "pick up friends" : "get picked up";
             const message = `You're already signed up to ${rideOrDrive} from ${oldLoc}`;
             console.log(message);
@@ -905,7 +900,6 @@ module.exports.signUp = async (name, location, driver) => {
 
         // if the user is not already on the list, add them
         else {
-            console.log("Adding name to sheet");
             try {
                 await addNameToSheet(name, location, driver);
             } catch (addNameError) {
@@ -913,23 +907,75 @@ module.exports.signUp = async (name, location, driver) => {
             }
         }
 
-        console.log("Added name to sheet");
-
         // return successfully
         const rideOrDrive = driver ? "pick up friends" : "get picked up";
-        return resolve(
-            "You are signed up to " + rideOrDrive + " from " + location
-        );
+        const message = `You are now signed up to ${rideOrDrive} from ${location}!`;
+        console.log(message);
+        return resolve(message);
     });
-
-    // editSheet(user, true, false, gymnasticsCheckStatus, function(msg) {
-    //     sendText(msg);
-    // });
 };
 module.exports.cancel = name => {
-    // editSheet(user, false, true, gymnasticsCheckStatus, function(msg) {
-    //     sendText(msg);
-    // });
+    return new Promise(async function(resolve, reject) {
+        // make sure the name provided is valid
+        if (typeof name !== "string" || name.length === 0) {
+            return reject(new Error("Invalid name: ", name));
+        }
+
+        // the first and last row that could have names
+        const topRow = 9;
+        let lowestRow = 31;
+
+        // get the values of the columns that could contain the name
+        const possibleCols = ["H", "J", "N", "R"];
+        let colValuesPromises = possibleCols.map(pCol => {
+            if (pCol === "R") {
+                lowestRow = 35;
+            }
+            return readValues(`${pCol}${topRow}:${pCol}${lowestRow}`);
+        });
+
+        // the cell that holds the person's name
+        let takenCell;
+
+        // get the actual values from the promises
+        const columnValsArrays = await Promise.all(colValuesPromises);
+        // go through each column
+        for (
+            columnValsIdx = 0;
+            columnValsIdx < columnValsArrays.length;
+            columnValsIdx++
+        ) {
+            // get the column
+            const columnVals = columnValsArrays[columnValsIdx][0];
+            // go through each row
+            for (let row = 0; row < columnVals.length; row++) {
+                // if this row/column is the person's name, record it
+                if (columnVals[row] === name) {
+                    takenCell = `${possibleCols[columnValsIdx]}${row + topRow}`;
+                    // stop execution, cell has been found
+                    break;
+                }
+            }
+            // if cell has been found, stop execution
+            if (takenCell) break;
+        }
+
+        // if the user wasn't signed up in the first place, tell them they're gucci
+        if (!takenCell) {
+            return resolve(
+                "It looks like you weren't signed up before, so now you're, like, DOUBLE canceled."
+            );
+        }
+
+        // otherwise remove their name from that cell
+        try {
+            await writeValues(`${takenCell}:${takenCell}`, [[""]]);
+        } catch (overwriteNameError) {
+            return reject(overwriteNameError);
+        }
+
+        return resolve("Your name has been obliterated from the signup sheet!");
+    });
 };
 // module.exports.checkStatus = (user, sendText) => {
 //     editSheet(user, false, false, gymnasticsCheckStatus, function(msg) {
