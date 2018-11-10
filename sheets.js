@@ -728,8 +728,6 @@ async function checkIfSignedUp(name) {
             return reject(getColsError);
         }
 
-        console.log("peopleCols: ", peopleCols);
-
         // go through each column
         for (let col = 0; col < peopleCols.length; col++) {
             // get the list of people who signed up in that column
