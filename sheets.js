@@ -830,6 +830,51 @@ async function addNameToSheet(name, location, driver) {
     });
 }
 
+async function getPositionOfName(name) {
+    return new Promise(async function(resolve, reject) {
+        // the first and last row that could have names
+        const topRow = 9;
+        let lowestRow = 31;
+
+        // get the values of the columns that could contain the name
+        const possibleCols = ["H", "J", "N", "R"];
+        let colValuesPromises = possibleCols.map(pCol => {
+            if (pCol === "R") {
+                lowestRow = 35;
+            }
+            return readValues(`${pCol}${topRow}:${pCol}${lowestRow}`);
+        });
+
+        // the cell that holds the person's name
+        let takenCell;
+
+        // get the actual values from the promises
+        const columnValsArrays = await Promise.all(colValuesPromises);
+        // go through each column
+        for (
+            columnValsIdx = 0;
+            columnValsIdx < columnValsArrays.length;
+            columnValsIdx++
+        ) {
+            // get the column
+            const columnVals = columnValsArrays[columnValsIdx][0];
+            // go through each row
+            for (let row = 0; row < columnVals.length; row++) {
+                // if this row/column is the person's name, record it
+                if (columnVals[row] === name) {
+                    takenCell = `${possibleCols[columnValsIdx]}${row + topRow}`;
+                    // stop execution, cell has been found
+                    break;
+                }
+            }
+            // if cell has been found, stop execution
+            if (takenCell) break;
+        }
+
+        return resolve(takenCell);
+    });
+}
+
 module.exports.signUp = async (name, location, driver) => {
     return new Promise(async (resolve, reject) => {
         // make sure input is valid
@@ -919,43 +964,11 @@ module.exports.cancel = name => {
             return reject(checkValidTimeError);
         }
 
-        // the first and last row that could have names
-        const topRow = 9;
-        let lowestRow = 31;
-
-        // get the values of the columns that could contain the name
-        const possibleCols = ["H", "J", "N", "R"];
-        let colValuesPromises = possibleCols.map(pCol => {
-            if (pCol === "R") {
-                lowestRow = 35;
-            }
-            return readValues(`${pCol}${topRow}:${pCol}${lowestRow}`);
-        });
-
-        // the cell that holds the person's name
-        let takenCell;
-
-        // get the actual values from the promises
-        const columnValsArrays = await Promise.all(colValuesPromises);
-        // go through each column
-        for (
-            columnValsIdx = 0;
-            columnValsIdx < columnValsArrays.length;
-            columnValsIdx++
-        ) {
-            // get the column
-            const columnVals = columnValsArrays[columnValsIdx][0];
-            // go through each row
-            for (let row = 0; row < columnVals.length; row++) {
-                // if this row/column is the person's name, record it
-                if (columnVals[row] === name) {
-                    takenCell = `${possibleCols[columnValsIdx]}${row + topRow}`;
-                    // stop execution, cell has been found
-                    break;
-                }
-            }
-            // if cell has been found, stop execution
-            if (takenCell) break;
+        // get the cell that contains the user's name (or undefined if user isn't signed up)
+        try {
+            var takenCell = await getPositionOfName(name);
+        } catch (getPositionOfNameError) {
+            return reject(getPositionOfNameError);
         }
 
         // if the user wasn't signed up in the first place, tell them they're gucci
