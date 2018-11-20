@@ -15,7 +15,8 @@ if (need_twilio_auth) {
 
 // default settings for dev, to be modified to fit other environments
 let config = {
-    pickUpLocations: ["McDonald's", "Hub Madison", "Porter Boathouse"],
+    // pickUpLocations: ["McDonald'ss", "Hub Madison", "Porter Boathouse"],
+    pickUpLocations: ["mcdonalds", "hub", "porter"],
     onboardingStages: [
         "createdNewUser",
         "updatedName",
