@@ -15,10 +15,10 @@ const errorPrefix = "Didn't quite catch that. ";
 const serverErrorMessage =
     "There's an issue with the server, please try again later.";
 const newUserMessage =
-    "Welcome! I'm here to help you sign up for practice.  What's your first and last name (as seen on the signup sheet)?";
+    "Welcome! I'm here to help you signup for practice.  What's your first and last name (as seen on the signup sheet)?";
 const helpMessage = `
 Here's what I understand:
-sign up - stuff
+signup - stuff
 drop - stuff
 time - stuff
 settings - this phone #'s personal defaults
@@ -42,9 +42,19 @@ function getValidatedDriverStatus(text) {
         "sure",
         "certainly",
         "yea",
-        "yep"
+        "yep",
+        "drive",
+        "driver"
     ];
-    const noSynonyms = ["no", "noh", "no thanks", "nay", "never"];
+    const noSynonyms = [
+        "no",
+        "noh",
+        "no thanks",
+        "nay",
+        "never",
+        "ride",
+        "rider"
+    ];
 
     // wants to be a driver
     for (const i in yesSynonyms) {
@@ -162,8 +172,49 @@ async function getUserByNumber(number) {
     });
 }
 
-async function updateSettings(user, text) {
+async function updateSettings(user, args) {
     // need some way to tell which setting they want to update
+    // Options: pickup point, driver status, name
+    const first = args.split(" ")[0];
+    let choice;
+    // TODO: handle more vagaries of user typing, start simple for now
+    if (first == "pickup") {
+        choice = "pickup";
+    } else if (first == "driver") {
+        choice = "driver";
+    } else if (first == "name") {
+        choice = "name";
+    } else {
+        choice = "default";
+    }
+    switch (choice) {
+        case "pickup":
+            // TODO: check that pickup location provided is valid
+            args.split("pickup");
+            const location = getValidatedLocation();
+            if (location == null) {
+                // TODO: return update error message
+            }
+            // TODO: update pickup location in Dynamo
+            break;
+        case "driver":
+            // TODO: have to decide on boolean value to pass
+            const driver = getValidatedDriverStatus();
+            if (driver == null) {
+                // TODO: return update error message
+            }
+            // TODO: update driver status in Dynamo
+            break;
+        case "name":
+            const name = getValidatedName();
+            if (name == null) {
+                // TODO: return update error message
+            }
+            // TODO: update name in Dynamo
+            break;
+        default:
+        // TODO: return update help message
+    }
     return new Promise();
 }
 
@@ -171,20 +222,50 @@ function updateHelpMessage() {
     return "Update help message";
 }
 
-async function signUp(user, text) {
+function getSignupOptions(args) {
+    // null if options are incorrect in any way
+    // have to be able to grab multiple options from single string
+    const hasRide = args.getIndexOf("ride") != -1;
+    const hasDrive = args.getIndexOf("drive") != -1;
+    if (hasDrive == hasRide) {
+        // TODO: please select 1 of ride or drive
+    }
+
+    // now get the location (or leave as default)
+    // TODO: do we want to allow partial non-default? like only change ride/drive
+    // and leave rest the same? seems easy
+    return null;
+}
+
+async function signUp(user, args) {
     // signup, sign up, sign-up; ride or drive
     // parse any extra args
+    // For now, assume signup [ride|drive] [<location>]
+
+    if (args == "") {
+        // TODO: try to signup with defaults
+    } else {
+        const options = getSignupOptions(args);
+        if (options == null) {
+            // TODO: return signUp help message
+        }
+        // valid signup options
+        // TODO: signup user with the options instead of their defaults
+    }
     return new Promise();
 }
 
 function signUpHelpMessage() {
-    return "Sign up help message";
+    return "Signup help message";
 }
 
-async function drop(user, text) {
+async function drop(user, args) {
     // try and drop user from signup with Google
     // send them back either a success message or failure
     // for their sanity
+
+    // TODO: currently no sub-options for drop
+    //sheets. drop user from sheet (user);
     return new Promise();
 }
 
@@ -199,7 +280,28 @@ function isOnboardingUser(user) {
 }
 
 function getUserChoice(text) {
-    return "help";
+    // Keep it simple, if the first string delimited word isn't an option, assume
+    // the user is terrible at using the service.
+    // Function returns the decision as well the remaining text from the message as args
+    const words = text.split(" ");
+    const first = words[0];
+    const args = words.slice(1, -1).join("");
+    if (first == "update") {
+        return { choice: first, args: args };
+    } else if (first == "sign") {
+        if (words.length > 2) {
+            if (words[1] == "up") {
+                return { choice: "signup", args: words.slice(2, -1).join("") };
+            }
+        }
+    } else if (first == "sign-up") {
+        return { choice: "signup", args: args };
+    } else if (first == "signup") {
+        return { choice: "signup", args: args };
+    } else if (first == "drop") {
+        return { choice: "drop", args: args };
+    }
+    return { choice: "help", args: "" };
 }
 
 // returns the service response to the user (string)
@@ -222,20 +324,22 @@ async function getResponse(req) {
         }
 
         // an existing user at this point
-        const choice = getUserChoice(text);
+        const retVal = getUserChoice(text);
+        const choice = retVal.choice;
+        const args = retVal.args;
         console.log("User choice -", choice);
 
         // functions all decide what response they need to send and return it,
-        // this makes it easy to pass error messages back to user
+        // this makes it easy to pass correct error messages back to user
         switch (choice) {
             case "update":
-                return await updateSettings(user, text);
+                return await updateSettings(user, args);
                 break;
-            case "sign up":
-                return await signUp(user, text);
+            case "signup":
+                return await signUp(user, args);
                 break;
             case "drop":
-                return await drop(user, text);
+                return await drop(user, args);
                 break;
             // couldn't figure out what they wanted to do or help
             case "help":
